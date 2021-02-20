@@ -10,12 +10,11 @@ export function login(data) {
 
 export function userlogin(data) {
   return request({
-    url:'',
+    url:'https://localhost:5001/api/Login/login',
     method:'post',
     data
   })
 }
-
 
 export function getInfo(token) {
   return request({
