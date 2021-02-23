@@ -129,7 +129,12 @@
 
 
 <script>
-import { getTeacherList,addTeacher,delTeacher } from "@/api/teacher";
+import {
+  getTeacherList,
+  addTeacher,
+  delTeacher,
+  updateTeacher,
+} from "@/api/teacher";
 import waves from "@/directive/waves"; // waves directive
 import Pagination from "@/components/Pagination"; // secondary package based on el-pagination
 
@@ -137,7 +142,7 @@ const SexTypeOptions = [
   { key: "男", display_name: "男" },
   { key: "女", display_name: "女" },
 ];
-
+  
 const SexTypeKeyValue = SexTypeOptions.reduce((acc, cur) => {
   acc[cur.key] = cur.display_name;
   return acc;
@@ -153,11 +158,11 @@ export default {
       listLoading: true,
       dialogFormVisible: false,
       SexTypeOptions,
-      total: 0,
       temp: {
         teacherID: undefined,
         teacherName: undefined,
         sex: "",
+        userKey: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
       },
       searchOptions: [
         { label: "工号", key: "teacherID" },
@@ -226,18 +231,26 @@ export default {
         if (valid) {
           const tempData = Object.assign({}, this.temp);
           console.log(tempData);
-
-          //   updateArticle(tempData).then(() => {
-          //     const index = this.list.findIndex((v) => v.id === this.temp.id);
-          //     this.list.splice(index, 1, this.temp);
-          //     this.dialogFormVisible = false;
-          //     this.$notify({
-          //       title: "Success",
-          //       message: "Update Successfully",
-          //       type: "success",
-          //       duration: 2000,
-          //     });
-          //   });
+          updateTeacher(tempData)
+            .then((response) => {
+              if (response.code === 20000) {
+                this.$notify({
+                  title: "成功",
+                  message: "修改成功",
+                  type: "success",
+                  duration: 2000,
+                });
+                this.fetchData();
+              }
+            })
+            .catch((response) => {
+              this.$notify({
+                title: "错误",
+                message: response.message,
+                type: "error",
+                duration: 2000,
+              });
+            });
         }
       });
     },
@@ -248,6 +261,7 @@ export default {
         teacherID: undefined,
         teacherName: undefined,
         sex: undefined,
+        LastUpdateBy: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
       };
     },
     handleCreate() {
@@ -261,20 +275,51 @@ export default {
     createData() {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
-          // this.temp.id = parseInt(Math.random() * 100) + 1024; // mock a id
-          // this.temp.author = "vue-element-admin";
-          // createArticle(this.temp).then(() => {
-          //   this.list.unshift(this.temp);
-          //   this.dialogFormVisible = false;
-          //   this.$notify({
-          //     title: "Success",
-          //     message: "Created Successfully",
-          //     type: "success",
-          //     duration: 2000,
-          //   });
-          // });
+          addTeacher(this.temp)
+            .then((response) => {
+              if (response.code === 20000) {
+                this.$notify({
+                  title: "成功",
+                  message: "添加成功",
+                  type: "success",
+                  duration: 2000,
+                });
+                this.fetchData();
+              }
+            })
+            .catch((response) => {
+              this.$notify({
+                title: "错误",
+                message: response.message,
+                type: "error",
+                duration: 2000,
+              });
+            });
         }
       });
+    },
+    handleDelete(row) {
+      this.temp = Object.assign({}, row); // copy obj
+      delTeacher(this.temp.teacherID)
+        .then((response) => {
+          if (response.code === 20000) {
+            this.$notify({
+              title: "成功",
+              message: "修改成功",
+              type: "success",
+              duration: 2000,
+            });
+            this.fetchData();
+          }
+        })
+        .catch((response) => {
+          this.$notify({
+            title: "错误",
+            message: response.message,
+            type: "error",
+            duration: 2000,
+          });
+        });
     },
   },
 };
