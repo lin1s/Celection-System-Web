@@ -46,22 +46,32 @@
     >
       <el-table-column label="序号" align="center">
         <template slot-scope="scope">
-          {{ scope.$index }}
+          {{ scope.$index + 1 }}
         </template>
       </el-table-column>
-      <el-table-column label="工号" align="center">
+      <el-table-column label="课号" align="center">
         <template slot-scope="scope">
-          {{ scope.row.teacherID }} 
+          {{ scope.row.courseID }}
         </template>
       </el-table-column>
-      <el-table-column label="姓名" align="center">
+      <el-table-column label="课程名" align="center">
+        <template slot-scope="scope">
+          {{ scope.row.courseName }}
+        </template>
+      </el-table-column>
+      <el-table-column label="教师" align="center">
         <template slot-scope="scope">
           {{ scope.row.teacherName }}
         </template>
       </el-table-column>
-      <el-table-column label="性别" align="center">
+      <el-table-column label="最大人数" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.sex }}</span>
+          {{ scope.row.MaxNum }}
+        </template>
+      </el-table-column>
+      <el-table-column label="已选人数" align="center">
+        <template slot-scope="scope">
+          {{ scope.row.HaveStu }}
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center">
@@ -92,25 +102,17 @@
         label-width="70px"
         style="width: 400px; margin-left: 50px"
       >
-        <el-form-item label="工号" prop="title">
-          <el-input v-model="temp.teacherID" placeholder="请输入工号" />
+        <el-form-item label="课号" prop="title">
+          <el-input v-model="temp.courseID" placeholder="请输入工号" />
         </el-form-item>
-        <el-form-item label="姓名" prop="title">
+        <el-form-item label="课程名" prop="title">
+          <el-input v-model="temp.courseName" placeholder="请输入姓名" />
+        </el-form-item>
+        <el-form-item label="教师" prop="title">
           <el-input v-model="temp.teacherName" placeholder="请输入姓名" />
         </el-form-item>
-        <el-form-item label="性别">
-          <el-select
-            v-model="temp.sex"
-            class="filter-item"
-            placeholder="请选择性别"
-          >
-            <el-option
-              v-for="item in SexTypeOptions"
-              :key="item.key"
-              :label="item.display_name"
-              :value="item.key"
-            />
-          </el-select>
+        <el-form-item label="最大人数" prop="title">
+          <el-input v-model="temp.MaxNum" placeholder="请输入姓名" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -129,24 +131,10 @@
 
 
 <script>
-import {
-  getTeacherList,
-  addTeacher,
-  delTeacher,
-  updateTeacher,
-} from "@/api/teacher";
+import { getTeacherList } from "@/api/teacher";
+import { getCourseList } from "@/api/course";
 import waves from "@/directive/waves"; // waves directive
 import Pagination from "@/components/Pagination"; // secondary package based on el-pagination
-
-const SexTypeOptions = [
-  { key: "男", display_name: "男" },
-  { key: "女", display_name: "女" },
-];
-  
-const SexTypeKeyValue = SexTypeOptions.reduce((acc, cur) => {
-  acc[cur.key] = cur.display_name;
-  return acc;
-}, {});
 
 export default {
   components: { Pagination },
@@ -157,16 +145,18 @@ export default {
       allList: null,
       listLoading: true,
       dialogFormVisible: false,
-      SexTypeOptions,
       temp: {
-        teacherID: undefined,
+        courseID: undefined,
+        courseName: undefined,
         teacherName: undefined,
-        sex: "",
+        MaxNum: undefined,
+        HaveStu: undefined,
         userKey: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
       },
       searchOptions: [
-        { label: "工号", key: "teacherID" },
-        { label: "姓名", key: "teacherName" },
+        { label: "课号", key: "courseID" },
+        { label: "课程名", key: "courseName" },
+        { label: "教师", key: "teacherName" },
       ],
       searchKey: null,
       searchValue: null,
@@ -184,7 +174,7 @@ export default {
     //初始化数据
     fetchData() {
       this.listLoading = true;
-      getTeacherList().then((response) => {
+      getCourseList().then((response) => {
         this.list = response.data;
         this.allList = response.data;
         this.listLoading = false;
@@ -198,7 +188,8 @@ export default {
         let searchValue = this.searchValue;
         this.list = this.allList.filter(function (allList) {
           let searchField = {
-            teacherID: allList.teacherID,
+            courseID: allList.courseID,
+            courseName: allList.courseName,
             teacherName: allList.teacherName,
           };
           return Object.keys(searchField).some(function (key) {
@@ -230,27 +221,6 @@ export default {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
           const tempData = Object.assign({}, this.temp);
-          console.log(tempData);
-          updateTeacher(tempData)
-            .then((response) => {
-              if (response.code === 20000) {
-                this.$notify({
-                  title: "成功",
-                  message: "修改成功",
-                  type: "success",
-                  duration: 2000,
-                });
-                this.fetchData();
-              }
-            })
-            .catch((response) => {
-              this.$notify({
-                title: "错误",
-                message: response.message,
-                type: "error",
-                duration: 2000,
-              });
-            });
         }
       });
     },
@@ -258,9 +228,11 @@ export default {
     //添加信息
     resetTemp() {
       this.temp = {
-        teacherID: undefined,
+        courseID: undefined,
+        courseName: undefined,
         teacherName: undefined,
-        sex: undefined,
+        MaxNum: undefined,
+        HaveStu: 0,
         LastUpdateBy: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
       };
     },
@@ -275,51 +247,11 @@ export default {
     createData() {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
-          addTeacher(this.temp)
-            .then((response) => {
-              if (response.code === 20000) {
-                this.$notify({
-                  title: "成功",
-                  message: "添加成功",
-                  type: "success",
-                  duration: 2000,
-                });
-                this.fetchData();
-              }
-            })
-            .catch((response) => {
-              this.$notify({
-                title: "错误",
-                message: response.message,
-                type: "error",
-                duration: 2000,
-              });
-            });
         }
       });
     },
     handleDelete(row) {
       this.temp = Object.assign({}, row); // copy obj
-      delTeacher(this.temp.teacherID)
-        .then((response) => {
-          if (response.code === 20000) {
-            this.$notify({
-              title: "成功",
-              message: "修改成功",
-              type: "success",
-              duration: 2000,
-            });
-            this.fetchData();
-          }
-        })
-        .catch((response) => {
-          this.$notify({
-            title: "错误",
-            message: response.message,
-            type: "error",
-            duration: 2000,
-          });
-        });
     },
   },
 };

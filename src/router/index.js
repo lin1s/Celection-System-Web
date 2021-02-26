@@ -108,7 +108,7 @@ export const constantRoutes = [
       {
         path: 'table',
         name: 'Table',
-        component: () => import('@/views/course/teacherTable'),
+        component: () => import('@/views/course/courseTable'),
         meta: { title: '课程列表', icon: 'table' }
       },
     ]

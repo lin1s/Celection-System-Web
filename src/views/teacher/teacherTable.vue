@@ -46,7 +46,7 @@
     >
       <el-table-column label="序号" align="center">
         <template slot-scope="scope">
-          {{ scope.$index }}
+          {{ scope.$index+1 }}
         </template>
       </el-table-column>
       <el-table-column label="工号" align="center">
