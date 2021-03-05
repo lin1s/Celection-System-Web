@@ -46,7 +46,7 @@
     >
       <el-table-column label="序号" align="center">
         <template slot-scope="scope">
-          {{ scope.$index+1 }}
+          {{ scope.$index + 1 }}
         </template>
       </el-table-column>
       <el-table-column label="工号" align="center">
@@ -142,7 +142,7 @@ const SexTypeOptions = [
   { key: "男", display_name: "男" },
   { key: "女", display_name: "女" },
 ];
-  
+
 const SexTypeKeyValue = SexTypeOptions.reduce((acc, cur) => {
   acc[cur.key] = cur.display_name;
   return acc;
@@ -165,6 +165,7 @@ export default {
         userKey: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
       },
       searchOptions: [
+        { label: "", key: "" },
         { label: "工号", key: "teacherID" },
         { label: "姓名", key: "teacherName" },
       ],
@@ -193,7 +194,7 @@ export default {
 
     //前端搜索
     handleFilter() {
-      if (isNaN(this.searchKey) && isNaN(this.searchValue)) {
+      if (this.checkNull(this.searchKey) && this.checkNull(this.searchValue)) {
         this.listLoading = true;
         let searchValue = this.searchValue;
         this.list = this.allList.filter(function (allList) {
@@ -206,13 +207,26 @@ export default {
           });
         });
         this.listLoading = false;
-      } else {
+      } else if (
+        this.checkNull(this.searchKey) ||
+        this.checkNull(this.searchValue)
+      ) {
         this.$notify({
           title: "错误",
           message: "请输入查询内容",
           type: "error",
           duration: 2000,
         });
+      } else {
+        this.list = this.allList;
+      }
+    },
+
+    checkNull(value) {
+      if (value === "" || value === null || value === undefined) {
+        return false;
+      } else {
+        return true;
       }
     },
 
@@ -230,7 +244,6 @@ export default {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
           const tempData = Object.assign({}, this.temp);
-          console.log(tempData);
           updateTeacher(tempData)
             .then((response) => {
               if (response.code === 20000) {

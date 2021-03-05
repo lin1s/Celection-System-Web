@@ -7,3 +7,26 @@ export function getCourseList(params) {
         data: params
     })
 }
+
+export function addCourse(params) {
+    return request({
+        url: 'https://localhost:5001/api/Course/add',
+        method: 'post',
+        data: params
+    })
+}
+
+export function delCourse(params) {
+    return request({
+        url: 'https://localhost:5001/api/Course/del?courseID='+params,
+        method: 'get',
+    })
+}
+
+export function updateCourse(params) {
+    return request({
+        url: 'https://localhost:5001/api/Course/update',
+        method: 'post',
+        data: params
+    })
+}

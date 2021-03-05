@@ -66,12 +66,12 @@
       </el-table-column>
       <el-table-column label="最大人数" align="center">
         <template slot-scope="scope">
-          {{ scope.row.MaxNum }}
+          {{ scope.row.maxNum }}
         </template>
       </el-table-column>
       <el-table-column label="已选人数" align="center">
         <template slot-scope="scope">
-          {{ scope.row.HaveStu }}
+          {{ scope.row.haveStu }}
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center">
@@ -108,11 +108,22 @@
         <el-form-item label="课程名" prop="title">
           <el-input v-model="temp.courseName" placeholder="请输入姓名" />
         </el-form-item>
-        <el-form-item label="教师" prop="title">
-          <el-input v-model="temp.teacherName" placeholder="请输入姓名" />
+        <el-form-item label="教师">
+          <el-select
+            v-model="temp.teacherName"
+            class="filter-item"
+            placeholder="请选择授课老师"
+          >
+            <el-option
+              v-for="item in teacherList"
+              :key="item.id"
+              :label="item.teacherName"
+              :value="item.id"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="最大人数" prop="title">
-          <el-input v-model="temp.MaxNum" placeholder="请输入姓名" />
+          <el-input v-model="temp.MaxNum" placeholder="请输入最大人数" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -132,7 +143,12 @@
 
 <script>
 import { getTeacherList } from "@/api/teacher";
-import { getCourseList } from "@/api/course";
+import {
+  getCourseList,
+  addCourse,
+  delCourse,
+  updateCourse,
+} from "@/api/course";
 import waves from "@/directive/waves"; // waves directive
 import Pagination from "@/components/Pagination"; // secondary package based on el-pagination
 
@@ -143,17 +159,20 @@ export default {
     return {
       list: null,
       allList: null,
+      teacherList: null,
       listLoading: true,
       dialogFormVisible: false,
       temp: {
         courseID: undefined,
         courseName: undefined,
+        teacherid: undefined,
         teacherName: undefined,
         MaxNum: undefined,
         HaveStu: undefined,
         userKey: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
       },
       searchOptions: [
+        { label: "", key: "" },
         { label: "课号", key: "courseID" },
         { label: "课程名", key: "courseName" },
         { label: "教师", key: "teacherName" },
@@ -181,9 +200,15 @@ export default {
       });
     },
 
+    fetchTeacherData() {
+      getTeacherList().then((response) => {
+        this.teacherList = response.data;
+      });
+    },
+
     //前端搜索
     handleFilter() {
-      if (isNaN(this.searchKey) && isNaN(this.searchValue)) {
+      if (this.checkNull(this.searchKey) && this.checkNull(this.searchValue)) {
         this.listLoading = true;
         let searchValue = this.searchValue;
         this.list = this.allList.filter(function (allList) {
@@ -197,19 +222,34 @@ export default {
           });
         });
         this.listLoading = false;
-      } else {
+      } else if (
+        this.checkNull(this.searchKey) ||
+        this.checkNull(this.searchValue)
+      ) {
         this.$notify({
           title: "错误",
           message: "请输入查询内容",
           type: "error",
           duration: 2000,
         });
+      } else {
+        this.list = this.allList;
+      }
+    },
+
+    checkNull(value) {
+      if (value === "" || value === null || value === undefined) {
+        return false;
+      } else {
+        return true;
       }
     },
 
     //创建弹窗并设置为更新
     handleUpdate(row) {
+      this.fetchTeacherData();
       this.temp = Object.assign({}, row); // copy obj
+      console.log(this.temp);
       this.temp.timestamp = new Date(this.temp.timestamp);
       this.dialogStatus = "update";
       this.dialogFormVisible = true;
@@ -221,6 +261,27 @@ export default {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
           const tempData = Object.assign({}, this.temp);
+          updateCourse(tempData)
+            .then((response) => {
+              if (response.code === 20000) {
+                this.$notify({
+                  title: "成功",
+                  message: "修改成功",
+                  type: "success",
+                  duration: 2000,
+                });
+                this.fetchData();
+                this.dialogFormVisible = false;
+              }
+            })
+            .catch((response) => {
+              this.$notify({
+                title: "错误",
+                message: response.message,
+                type: "error",
+                duration: 2000,
+              });
+            });
         }
       });
     },
@@ -230,6 +291,7 @@ export default {
       this.temp = {
         courseID: undefined,
         courseName: undefined,
+        teacherid: undefined,
         teacherName: undefined,
         MaxNum: undefined,
         HaveStu: 0,
@@ -237,6 +299,7 @@ export default {
       };
     },
     handleCreate() {
+      this.fetchTeacherData();
       this.resetTemp();
       this.dialogStatus = "create";
       this.dialogFormVisible = true;
@@ -247,11 +310,53 @@ export default {
     createData() {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
+          this.temp.teacherid = this.temp.teacherName;
+          addCourse(this.temp)
+            .then((response) => {
+              if (response.code === 20000) {
+                this.$notify({
+                  title: "成功",
+                  message: "添加成功",
+                  type: "success",
+                  duration: 2000,
+                });
+                this.fetchData();
+                this.dialogFormVisible = false;
+              }
+            })
+            .catch((response) => {
+              this.$notify({
+                title: "错误",
+                message: response.message,
+                type: "error",
+                duration: 2000,
+              });
+            });
         }
       });
     },
     handleDelete(row) {
       this.temp = Object.assign({}, row); // copy obj
+      delCourse(this.temp.courseID)
+        .then((response) => {
+          if (response.code === 20000) {
+            this.$notify({
+              title: "成功",
+              message: "删除成功",
+              type: "success",
+              duration: 2000,
+            });
+            this.fetchData();
+          }
+        })
+        .catch((response) => {
+          this.$notify({
+            title: "错误",
+            message: response.message,
+            type: "error",
+            duration: 2000,
+          });
+        });
     },
   },
 };
