@@ -113,6 +113,21 @@ export const constantRoutes = [
       },
     ]
   },
+  {
+    path: '/student',
+    component: Layout,
+    redirect: '/course/studentTable',
+    name: 'student',
+    meta: { title: '学生管理', icon: 'el-icon-s-help' },
+    children: [
+      {
+        path: 'table',
+        name: 'Table',
+        component: () => import('@/views/student/studentTable'),
+        meta: { title: '学生列表', icon: 'table' }
+      },
+    ]
+  },
 ]
 
 /**
