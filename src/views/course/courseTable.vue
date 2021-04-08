@@ -77,6 +77,13 @@
       <el-table-column label="操作" align="center">
         <template slot-scope="scope, $index">
           <el-button
+            size="mini"
+            type="primary"
+            @click="handleGetStudent(scope.row)"
+          >
+            查看选课学生
+          </el-button>
+          <el-button
             type="primary"
             size="mini"
             @click="handleUpdate(scope.row)"
@@ -136,6 +143,33 @@
         </el-button>
       </div>
     </el-dialog>
+
+    <el-dialog :visible.sync="dialogFormVisible2" :title="textMap[dialogStatus]">
+      <el-table
+        v-loading="listLoading"
+        :data="studentList"
+        element-loading-text="Loading"
+        border
+        fit
+        highlight-current-row
+      >
+        <el-table-column label="序号" align="center">
+          <template slot-scope="scope">
+            {{ scope.$index + 1 }}
+          </template>
+        </el-table-column>
+        <el-table-column label="学号" align="center">
+          <template slot-scope="scope">
+            {{ scope.row.studentID }}
+          </template>
+        </el-table-column>
+        <el-table-column label="姓名" align="center">
+          <template slot-scope="scope">
+            {{ scope.row.studentName }}
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -148,6 +182,7 @@ import {
   addCourse,
   delCourse,
   updateCourse,
+  getStudentListByCourse,
 } from "@/api/course";
 import waves from "@/directive/waves"; // waves directive
 import Pagination from "@/components/Pagination"; // secondary package based on el-pagination
@@ -160,8 +195,10 @@ export default {
       list: null,
       allList: null,
       teacherList: null,
+      studentList: null,
       listLoading: true,
       dialogFormVisible: false,
+      dialogFormVisible2: false,
       temp: {
         courseID: undefined,
         courseName: undefined,
@@ -183,6 +220,7 @@ export default {
       textMap: {
         update: "修改",
         create: "新建",
+        check:"查看选课学生",
       },
     };
   },
@@ -335,6 +373,8 @@ export default {
         }
       });
     },
+
+    //删除信息
     handleDelete(row) {
       this.temp = Object.assign({}, row); // copy obj
       delCourse(this.temp.courseID)
@@ -357,6 +397,16 @@ export default {
             duration: 2000,
           });
         });
+    },
+
+    //获得选课学生
+    handleGetStudent(row) {
+      this.temp = Object.assign({}, row); // copy obj
+      this.dialogFormVisible2 = true;
+      this.dialogStatus = "check";
+      getStudentListByCourse(this.temp.id).then((response) => {
+        this.studentList=response.data;
+      });
     },
   },
 };
