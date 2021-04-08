@@ -49,19 +49,24 @@
           {{ scope.$index + 1 }}
         </template>
       </el-table-column>
-      <el-table-column label="工号" align="center">
+      <el-table-column label="学号" align="center">
         <template slot-scope="scope">
-          {{ scope.row.teacherID }}
+          {{ scope.row.studentID }}
         </template>
       </el-table-column>
       <el-table-column label="姓名" align="center">
         <template slot-scope="scope">
-          {{ scope.row.teacherName }}
+          {{ scope.row.studentName }}
         </template>
       </el-table-column>
       <el-table-column label="性别" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.sex }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="电话" align="center">
+        <template slot-scope="scope">
+          <span>{{ scope.row.phone }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center">
@@ -92,11 +97,11 @@
         label-width="70px"
         style="width: 400px; margin-left: 50px"
       >
-        <el-form-item label="工号" prop="title">
-          <el-input v-model="temp.teacherID" placeholder="请输入工号" />
+        <el-form-item label="学号" prop="title">
+          <el-input v-model="temp.studentID" placeholder="请输入学号" />
         </el-form-item>
         <el-form-item label="姓名" prop="title">
-          <el-input v-model="temp.teacherName" placeholder="请输入姓名" />
+          <el-input v-model="temp.studentName" placeholder="请输入姓名" />
         </el-form-item>
         <el-form-item label="性别">
           <el-select
@@ -111,6 +116,9 @@
               :value="item.key"
             />
           </el-select>
+        </el-form-item>
+        <el-form-item label="电话号码" prop="title">
+          <el-input v-model="temp.phone" placeholder="请输入电话号码" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -130,11 +138,11 @@
 
 <script>
 import {
-  getTeacherList,
-  addTeacher,
-  delTeacher,
-  updateTeacher,
-} from "@/api/teacher";
+  getStudentList,
+  addStudent,
+  delStudent,
+  updateStudent,
+} from "@/api/student";
 import waves from "@/directive/waves"; // waves directive
 import Pagination from "@/components/Pagination"; // secondary package based on el-pagination
 
@@ -159,15 +167,16 @@ export default {
       dialogFormVisible: false,
       SexTypeOptions,
       temp: {
-        teacherID: undefined,
-        teacherName: undefined,
+        studentID: undefined,
+        studentName: undefined,
         sex: "",
-        userKey: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        phone: undefined,
+        LastUpdateBy: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
       },
       searchOptions: [
         { label: "", key: "" },
-        { label: "工号", key: "teacherID" },
-        { label: "姓名", key: "teacherName" },
+        { label: "学号", key: "studentID" },
+        { label: "姓名", key: "studentName" },
       ],
       searchKey: null,
       searchValue: null,
@@ -185,7 +194,7 @@ export default {
     //初始化数据
     fetchData() {
       this.listLoading = true;
-      getTeacherList().then((response) => {
+      getStudentList().then((response) => {
         this.list = response.data;
         this.allList = response.data;
         this.listLoading = false;
@@ -199,8 +208,8 @@ export default {
         let searchValue = this.searchValue;
         this.list = this.allList.filter(function (allList) {
           let searchField = {
-            teacherID: allList.teacherID,
-            teacherName: allList.teacherName,
+            studentID: allList.studentID,
+            studentName: allList.studentName,
           };
           return Object.keys(searchField).some(function (key) {
             return String(allList[key]).toLowerCase().indexOf(searchValue) > -1;
@@ -244,7 +253,7 @@ export default {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
           const tempData = Object.assign({}, this.temp);
-          updateTeacher(tempData)
+          updateStudent(tempData)
             .then((response) => {
               if (response.code === 20000) {
                 this.$notify({
@@ -271,9 +280,10 @@ export default {
     //添加信息
     resetTemp() {
       this.temp = {
-        teacherID: undefined,
-        teacherName: undefined,
-        sex: undefined,
+        studentID: undefined,
+        studentName: undefined,
+        sex: "",
+        phone: undefined,
         LastUpdateBy: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
       };
     },
@@ -288,7 +298,7 @@ export default {
     createData() {
       this.$refs["dataForm"].validate((valid) => {
         if (valid) {
-          addTeacher(this.temp)
+          addStudent(this.temp)
             .then((response) => {
               if (response.code === 20000) {
                 this.$notify({
@@ -313,7 +323,7 @@ export default {
     },
     handleDelete(row) {
       this.temp = Object.assign({}, row); // copy obj
-      delTeacher(this.temp.teacherID)
+      delStudent(this.temp.studentID)
         .then((response) => {
           if (response.code === 20000) {
             this.$notify({

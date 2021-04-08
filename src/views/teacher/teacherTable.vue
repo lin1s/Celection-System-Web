@@ -311,6 +311,8 @@ export default {
         }
       });
     },
+
+    //删除信息
     handleDelete(row) {
       this.temp = Object.assign({}, row); // copy obj
       delTeacher(this.temp.teacherID)
