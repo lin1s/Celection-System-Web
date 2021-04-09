@@ -30,10 +30,3 @@ export function updateCourse(params) {
         data: params
     })
 }
-
-export function getStudentListByCourse(params) {
-    return request({
-        url: 'https://localhost:5001/api/Record/getStudentByCourse?courseID='+params,
-        method: "get",
-    })
-}

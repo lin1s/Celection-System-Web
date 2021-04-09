@@ -116,7 +116,7 @@ export const constantRoutes = [
   {
     path: '/student',
     component: Layout,
-    redirect: '/course/studentTable',
+    redirect: '/student/studentTable',
     name: 'student',
     meta: { title: '学生管理', icon: 'el-icon-s-help' },
     children: [
@@ -125,6 +125,21 @@ export const constantRoutes = [
         name: 'Table',
         component: () => import('@/views/student/studentTable'),
         meta: { title: '学生列表', icon: 'table' }
+      },
+    ]
+  },
+  {
+    path: '/selectCourse',
+    component: Layout,
+    redirect: '/selectCourse/select',
+    name: 'select',
+    meta: { title: '选课', icon: 'el-icon-s-help' },
+    children: [
+      {
+        path: 'table',
+        name: 'Table',
+        component: () => import('@/views/selectCourse/select'),
+        meta: { title: '选课', icon: 'table' }
       },
     ]
   },

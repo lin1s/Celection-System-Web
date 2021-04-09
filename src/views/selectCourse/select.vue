@@ -25,15 +25,6 @@
       >
         搜索
       </el-button>
-      <el-button
-        class="filter-item"
-        style="margin-left: 10px"
-        type="primary"
-        icon="el-icon-edit"
-        @click="handleCreate"
-      >
-        添加
-      </el-button>
     </div>
 
     <el-table
@@ -79,23 +70,16 @@
           <el-button
             size="mini"
             type="primary"
-            @click="handleGetStudent(scope.row)"
+            @click="handleGetMessage(scope.row)"
           >
-            查看选课学生
+            查看选课信息
           </el-button>
           <el-button
             type="primary"
             size="mini"
             @click="handleUpdate(scope.row)"
           >
-            修改
-          </el-button>
-          <el-button
-            size="mini"
-            type="danger"
-            @click="handleDelete(scope.row, $index)"
-          >
-            删除
+            选课
           </el-button>
         </template>
       </el-table-column>
@@ -110,68 +94,18 @@
         style="width: 400px; margin-left: 50px"
       >
         <el-form-item label="课号" prop="title">
-          <el-input v-model="temp.courseID" placeholder="请输入工号" />
+          <el-input v-model="temp.courseID" readonly="true" placeholder="请输入工号" />
         </el-form-item>
         <el-form-item label="课程名" prop="title">
-          <el-input v-model="temp.courseName" placeholder="请输入姓名" />
+          <el-input v-model="temp.courseName" readonly="true" placeholder="请输入姓名" />
         </el-form-item>
-        <el-form-item label="教师">
-          <el-select
-            v-model="temp.teacherName"
-            class="filter-item"
-            placeholder="请选择授课老师"
-          >
-            <el-option
-              v-for="item in teacherList"
-              :key="item.id"
-              :label="item.teacherName"
-              :value="item.id"
-            />
-          </el-select>
+        <el-form-item label="教师" prop="title">
+          <el-input v-model="temp.teacherName" readonly="true" placeholder="请输入姓名" />
         </el-form-item>
         <el-form-item label="最大人数" prop="title">
-          <el-input v-model="temp.MaxNum" placeholder="请输入最大人数" />
+          <el-input v-model="temp.MaxNum" readonly="true" placeholder="请输入最大人数" />
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false"> 取消 </el-button>
-        <el-button
-          type="primary"
-          @click="dialogStatus === 'create' ? createData() : updateData()"
-        >
-          提交
-        </el-button>
-      </div>
-    </el-dialog>
-
-    <el-dialog
-      :visible.sync="dialogFormVisible2"
-      :title="textMap[dialogStatus]"
-    >
-      <el-table
-        v-loading="listLoading"
-        :data="studentList"
-        element-loading-text="Loading"
-        border
-        fit
-        highlight-current-row
-      >
-        <el-table-column label="序号" align="center">
-          <template slot-scope="scope">
-            {{ scope.$index + 1 }}
-          </template>
-        </el-table-column>
-        <el-table-column label="学号" align="center">
-          <template slot-scope="scope">
-            {{ scope.row.studentID }}
-          </template>
-        </el-table-column>
-        <el-table-column label="姓名" align="center">
-          <template slot-scope="scope">
-            {{ scope.row.studentName }}
-          </template>
-        </el-table-column>
-      </el-table>
     </el-dialog>
   </div>
 </template>
@@ -180,13 +114,7 @@
 
 <script>
 import { getTeacherList } from "@/api/teacher";
-import {
-  getCourseList,
-  addCourse,
-  delCourse,
-  updateCourse,
-} from "@/api/course";
-import { getStudentListByCourse } from "@/api/select";
+import { getCourse } from "@/api/select";
 import waves from "@/directive/waves"; // waves directive
 import Pagination from "@/components/Pagination"; // secondary package based on el-pagination
 
@@ -201,7 +129,6 @@ export default {
       studentList: null,
       listLoading: true,
       dialogFormVisible: false,
-      dialogFormVisible2: false,
       temp: {
         courseID: undefined,
         courseName: undefined,
@@ -221,9 +148,7 @@ export default {
       searchValue: null,
       dialogStatus: "",
       textMap: {
-        update: "修改",
-        create: "新建",
-        check: "查看选课学生",
+        check: "查看选课详情",
       },
     };
   },
@@ -234,7 +159,7 @@ export default {
     //初始化数据
     fetchData() {
       this.listLoading = true;
-      getCourseList().then((response) => {
+      getCourse().then((response) => {
         this.list = response.data;
         this.allList = response.data;
         this.listLoading = false;
@@ -286,47 +211,6 @@ export default {
       }
     },
 
-    //创建弹窗并设置为更新
-    handleUpdate(row) {
-      this.fetchTeacherData();
-      this.temp = Object.assign({}, row); // copy obj
-      console.log(this.temp);
-      this.temp.timestamp = new Date(this.temp.timestamp);
-      this.dialogStatus = "update";
-      this.dialogFormVisible = true;
-      this.$nextTick(() => {
-        this.$refs["dataForm"].clearValidate();
-      });
-    },
-    updateData() {
-      this.$refs["dataForm"].validate((valid) => {
-        if (valid) {
-          const tempData = Object.assign({}, this.temp);
-          updateCourse(tempData)
-            .then((response) => {
-              if (response.code === 20000) {
-                this.$notify({
-                  title: "成功",
-                  message: "修改成功",
-                  type: "success",
-                  duration: 2000,
-                });
-                this.fetchData();
-                this.dialogFormVisible = false;
-              }
-            })
-            .catch((response) => {
-              this.$notify({
-                title: "错误",
-                message: response.message,
-                type: "error",
-                duration: 2000,
-              });
-            });
-        }
-      });
-    },
-
     //添加信息
     resetTemp() {
       this.temp = {
@@ -339,77 +223,15 @@ export default {
         LastUpdateBy: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
       };
     },
-    handleCreate() {
-      this.fetchTeacherData();
-      this.resetTemp();
-      this.dialogStatus = "create";
+    handleGetMessage(row) {
+      this.dialogStatus = "check";
       this.dialogFormVisible = true;
-      this.$nextTick(() => {
-        this.$refs["dataForm"].clearValidate();
-      });
-    },
-    createData() {
-      this.$refs["dataForm"].validate((valid) => {
-        if (valid) {
-          this.temp.teacherid = this.temp.teacherName;
-          addCourse(this.temp)
-            .then((response) => {
-              if (response.code === 20000) {
-                this.$notify({
-                  title: "成功",
-                  message: "添加成功",
-                  type: "success",
-                  duration: 2000,
-                });
-                this.fetchData();
-                this.dialogFormVisible = false;
-              }
-            })
-            .catch((response) => {
-              this.$notify({
-                title: "错误",
-                message: response.message,
-                type: "error",
-                duration: 2000,
-              });
-            });
-        }
-      });
+      this.temp = Object.assign({}, row);
     },
 
     //删除信息
     handleDelete(row) {
       this.temp = Object.assign({}, row); // copy obj
-      delCourse(this.temp.courseID)
-        .then((response) => {
-          if (response.code === 20000) {
-            this.$notify({
-              title: "成功",
-              message: "删除成功",
-              type: "success",
-              duration: 2000,
-            });
-            this.fetchData();
-          }
-        })
-        .catch((response) => {
-          this.$notify({
-            title: "错误",
-            message: response.message,
-            type: "error",
-            duration: 2000,
-          });
-        });
-    },
-
-    //获得选课学生
-    handleGetStudent(row) {
-      this.temp = Object.assign({}, row); // copy obj
-      this.dialogFormVisible2 = true;
-      this.dialogStatus = "check";
-      getStudentListByCourse(this.temp.id).then((response) => {
-        this.studentList = response.data;
-      });
     },
   },
 };
